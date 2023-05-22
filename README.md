@@ -35,8 +35,8 @@ $ docker container run -it waxteam/cdt /bin/bash
 ```
 $ docker container run -it waxteam/waxdev /bin/bash
 $ cd /tmp && ls -la
-wax-cdt
-wax-blockchain
+drwxr-xr-x 1 root root 4096 May 22 06:38 wax-cdt
+drwxr-xr-x 1 root root 4096 Apr  3 15:33 wax-blockchain
 ```
 
 # Usage
