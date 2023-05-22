@@ -18,7 +18,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* &&  \
     python3 -m pip install pygments
 
-WORKDIR /tmp/cdt
+WORKDIR /tmp/wax-cdt
 COPY ${deps_dir}/cdt . 
 ENV leap_DIR=/tmp/wax-blockchain/build/lib/cmake/leap
 RUN mkdir build &&      \
