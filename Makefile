@@ -1,0 +1,90 @@
+WAX_NODE_REPO = git@github.com:worldwide-asset-exchange/wax-blockchain.git
+WAX_CDT_REPO = git@github.com:AntelopeIO/cdt.git
+BRANCH ?= main
+CDT_VERSION ?= v3.1.0
+WAX_VERSION ?= v3.3.0wax01
+DEPS_DIR=./tmp
+
+.PHONY: build-image push-image
+
+make_deps_dir:
+	@mkdir -p $(DEPS_DIR)
+
+clean:
+	-rm -rf $(DEPS_DIR)
+
+# It has some optimization code because cloning/initing is really slow
+get_wax_blockchain: make_deps_dir
+	if [ ! -d $(DEPS_DIR)/wax-blockchain ]; then \
+        cd $(DEPS_DIR) && \
+        git clone -b $(BRANCH) $(WAX_NODE_REPO) wax-blockchain --recursive && \
+        cd wax-blockchain; \
+    else \
+        cd $(DEPS_DIR)/wax-blockchain && \
+        git fetch --all --tags && \
+        git checkout $(BRANCH); \
+    fi && \
+    git submodule update --init --recursive
+	cd $(DEPS_DIR)/wax-blockchain && echo "$(WAX_VERSION):$(shell git rev-parse HEAD)" > wax-version
+
+get_cdt: make_deps_dir
+	if [ ! -d $(DEPS_DIR)/cdt ]; then \
+        cd $(DEPS_DIR) && \
+        git clone -b $(CDT_VERSION) $(WAX_CDT_REPO) --recursive && \
+        cd cdt; \
+    else \
+        cd $(DEPS_DIR)/cdt && \
+        git fetch --all --tags && \
+        git checkout $(CDT_VERSION); \
+    fi && \
+    git submodule update --init --recursive
+	cd $(DEPS_DIR)/cdt && echo "$(CDT_VERSION):$(shell git rev-parse HEAD)" > wax-version
+
+aws-login:
+	aws ecr get-login --region us-east-1 | sed 's/-e none//g' | bash
+
+build-node-image: get_wax_blockchain
+	docker build -f Dockerfile.node\
+         --build-arg deps_dir=$(DEPS_DIR) \
+         -t waxteam/waxnode .
+
+build-node-image-dev: get_wax_blockchain
+	docker build -f Dockerfile.node.dev\
+         --build-arg deps_dir=$(DEPS_DIR) \
+         -t waxteam/waxnode-dev .
+
+push-node-image:
+	docker tag waxteam/waxnode waxteam/waxnode:$(WAX_VERSION)
+	docker push waxteam/waxnode:$(WAX_VERSION)
+	docker tag waxteam/waxnode:$(WAX_VERSION) waxteam/waxnode:latest
+	docker push waxteam/waxnode:latest
+
+push-node-image-dev:
+	docker tag waxteam/waxnode-dev waxteam/waxnode-dev:$(WAX_VERSION)
+	docker push waxteam/waxnode-dev:$(WAX_VERSION)
+	docker tag waxteam/waxnode-dev:$(WAX_VERSION) waxteam/waxnode-dev:latest
+	docker push waxteam/waxnode-dev:latest
+
+build-cdt-image: get_cdt
+	docker build -f Dockerfile.cdt \
+        --build-arg deps_dir=$(DEPS_DIR) \
+        --build-arg WAX_VERSION=$(WAX_VERSION)\
+        -t waxteam/cdt .
+
+build-cdt-image-dev: get_cdt
+	docker build -f Dockerfile.cdt.dev \
+        --build-arg deps_dir=$(DEPS_DIR) \
+        --build-arg WAX_VERSION=$(WAX_VERSION)\
+        -t waxteam/cdt-dev .
+
+push-cdt-image:
+	docker tag waxteam/cdt waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)
+	docker push waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)
+	docker tag waxteam/cdt waxteam/cdt:latest
+	docker push waxteam/cdt:latest
+
+push-cdt-image-dev:
+	docker tag waxteam/cdt-dev waxteam/waxdev:$(WAX_VERSION)-$(CDT_VERSION)
+	docker push waxteam/waxdev:$(WAX_VERSION)-$(CDT_VERSION)
+	docker tag waxteam/cdt-dev waxteam/waxdev:latest
+	docker push waxteam/waxdev:latest

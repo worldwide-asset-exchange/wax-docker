@@ -1,2 +1,2 @@
-# wax-docker
+# Build
 WAX Docker images build tools
