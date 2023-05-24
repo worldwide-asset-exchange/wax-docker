@@ -5,7 +5,7 @@ CDT_VERSION ?= v3.1.0
 WAX_VERSION ?= v3.3.0wax01
 DEPS_DIR=./tmp
 
-.PHONY: build-image push-image
+.PHONY: build-node-image build-node-image-dev push-node-image push-node-image-dev build-cdt-image build-cdt-image-dev push-cdt-image push-cdt-image-dev
 
 make_deps_dir:
 	@mkdir -p $(DEPS_DIR)
@@ -88,3 +88,6 @@ push-cdt-image-dev:
 	docker push waxteam/waxdev:$(WAX_VERSION)-$(CDT_VERSION)
 	docker tag waxteam/cdt-dev waxteam/waxdev:latest
 	docker push waxteam/waxdev:latest
+
+build-all: build-node-image build-node-image-dev build-cdt-image build-cdt-image-dev
+push-all: push-node-image push-node-image-dev push-cdt-image push-cdt-image-dev
