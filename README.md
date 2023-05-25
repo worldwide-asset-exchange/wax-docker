@@ -1,37 +1,28 @@
 # Build
-## waxteam/waxnode
 ```
-$ make build-node-image
-```
-## waxteam/cdt
-```
-$ make build-cdt-image
-```
-
-## waxteam/waxdev
-```
-$ make build-cdt-image-dev
+$ make build-all
 ```
 
 # Docker images
-- wax-cdt
-- wax-blockchain
-
 ## nodeos image
+- waxteam/waxnode: This Docker image is used for the WAX blockchain and includes the following tools: cleos, nodeos, and keosd. It provides a complete environment for running and managing a WAX blockchain node. 
+- This one image was optimized for the production.
+
 ```
 $ docker container run -it waxteam/waxnode /bin/bash
 # nodeos -h
 ```
-
 ## cdt image
+- waxteam/cdt: The waxteam/cdt Docker image provides the environment for developing smart contracts on the WAX blockchain. It includes the Smart Contract Development Toolkit (CDT), which is a collection of tools and libraries that aid in the development of WAX smart contracts.
+
 ```
 $ docker container run -it waxteam/cdt /bin/bash
 # cdt-cpp -h
 ```
-
 ## Dev image
-- wax-cdt: /tmp/wax-cdt
-- wax-blockchain: /tmp/wax-blockchain
+- waxteam/waxdev: This Docker image combines the features of the waxteam/waxnode and waxteam/cdt images. It includes the WAX blockchain tools as well as the Smart Contract Development Toolkit. 
+- Inside /tmp/wax-blockchain and /tmp/wax-cdt directories, you'll find the compiled folders for the WAX blockchain and CDT. These folders contain the compiled artifacts and resources needed for running and testing your local blockchain network and WAX smart contracts. 
+
 ```
 $ docker container run -it waxteam/waxdev /bin/bash
 $ cd /tmp && ls -la
@@ -41,6 +32,7 @@ drwxr-xr-x 1 root root 4096 Apr  3 15:33 wax-blockchain
 
 # Usage
 ## Run a wax node with waxteam/waxnode docker
+To run wax-node follow [this document](https://github.com/worldwide-asset-exchange/wax-node)
 
 ## Compile a contract with waxteam/cdt
 ```
