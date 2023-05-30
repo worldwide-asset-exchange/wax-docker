@@ -35,3 +35,4 @@ RUN curl -L https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boo
     
 ENV EOSIO_ROOT=/tmp/wax-blockchain
 ENV PATH="/tmp/wax-blockchain/bin:${PATH}"
+ENV LEAP_BUILD_PATH=/tmp/wax-blockchain/build

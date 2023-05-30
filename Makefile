@@ -1,8 +1,9 @@
 WAX_NODE_REPO = git@github.com:worldwide-asset-exchange/wax-blockchain.git
-WAX_CDT_REPO = git@github.com:worldwide-asset-exchange/cdt.git
-BRANCH ?= main
-CDT_VERSION ?= v3.0.1
+WAX_BRANCH ?= main
 WAX_VERSION ?= v3.1.3wax01
+WAX_CDT_REPO = git@github.com:worldwide-asset-exchange/cdt.git
+CDT_BRANCH ?= main
+CDT_VERSION ?= v3.0.1
 DEPS_DIR=./tmp
 
 .PHONY: build-node-image build-node-image-dev push-node-image push-node-image-dev build-cdt-image build-cdt-image-dev push-cdt-image push-cdt-image-dev
@@ -17,27 +18,27 @@ clean:
 get_wax_blockchain: make_deps_dir
 	if [ ! -d $(DEPS_DIR)/wax-blockchain ]; then \
         cd $(DEPS_DIR) && \
-        git clone -b $(BRANCH) $(WAX_NODE_REPO) wax-blockchain --recursive && \
+        git clone -b $(WAX_BRANCH) $(WAX_NODE_REPO) wax-blockchain --recursive && \
         cd wax-blockchain; \
     else \
         cd $(DEPS_DIR)/wax-blockchain && \
         git fetch --all --tags && \
-        git checkout $(BRANCH); \
+        git checkout $(WAX_BRANCH); \
     fi && \
-    git submodule update --init --recursive
+    git checkout tags/$(WAX_VERSION) && git submodule update --init --recursive
 	cd $(DEPS_DIR)/wax-blockchain && echo "$(WAX_VERSION):$(shell git rev-parse HEAD)" > wax-version
 
 get_cdt: make_deps_dir
 	if [ ! -d $(DEPS_DIR)/cdt ]; then \
         cd $(DEPS_DIR) && \
-        git clone -b $(CDT_VERSION) $(WAX_CDT_REPO) --recursive && \
+        git clone -b $(CDT_BRANCH) $(WAX_CDT_REPO) --recursive && \
         cd cdt; \
     else \
         cd $(DEPS_DIR)/cdt && \
         git fetch --all --tags && \
-        git checkout $(CDT_VERSION); \
+        git checkout $(CDT_BRANCH); \
     fi && \
-    git submodule update --init --recursive
+    git checkout tags/$(CDT_VERSION) &&git submodule update --init --recursive
 	cd $(DEPS_DIR)/cdt && echo "$(CDT_VERSION):$(shell git rev-parse HEAD)" > wax-version
 
 aws-login:
