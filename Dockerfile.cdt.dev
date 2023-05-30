@@ -20,11 +20,11 @@ RUN apt-get update && \
 
 WORKDIR /tmp/wax-cdt
 COPY ${deps_dir}/cdt . 
-ENV leap_DIR=/tmp/wax-blockchain/build/lib/cmake/leap
+ENV leap_DIR=$LEAP_BUILD_PATH/lib/cmake/leap
 RUN mkdir build &&      \
     cd build &&         \
     cmake -DBOOST_ROOT=$HOME/boost1.79 .. &&         \
     make -j $(nproc) &&         \
     make install
-
 ENV PATH="/usr/local/cdt/bin:${PATH}"
+ENV CDT_BUILD_PATH=/tmp/wax-cdt/build
