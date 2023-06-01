@@ -1,6 +1,6 @@
 ################################################################################
 ARG WAX_VERSION
-FROM waxteam/waxnode:$WAX_VERSION
+FROM waxteam/waxnode:$WAX_VERSION as builder
 
 ARG deps_dir=.
 
@@ -24,8 +24,24 @@ ENV leap_DIR=/tmp/leap/build/lib/cmake/leap
 RUN mkdir build &&      \
     cd build &&         \
     cmake -DBOOST_ROOT=$HOME/boost1.79 .. &&         \
-    make -j $(nproc) &&         \
-    make install
-RUN cd /tmp && rm -rf cdt
+    make -j $(nproc)
+
+###############################################################################
+FROM ubuntu:18.04
+ARG deps_dir
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libssl-dev \
+        libusb-1.0-0-dev \
+        libcurl4-gnutls-dev && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /usr/local/cdt
+
+COPY --from=builder /tmp/wax-cdt/build/bin   /usr/local/cdt/bin
+COPY --from=builder /tmp/wax-cdt/build/cdt.imports   /usr/local/cdt/cdt.imports
+COPY --from=builder /tmp/wax-cdt/build/include   /usr/local/cdt/include
+COPY --from=builder /tmp/wax-cdt/build/lib   /usr/local/cdt/lib
+COPY --from=builder /tmp/wax-cdt/build/scripts   /usr/local/cdt/scripts
 
 ENV PATH="/usr/local/cdt/bin:${PATH}"
