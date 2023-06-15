@@ -1,5 +1,5 @@
 ################################################################################
-FROM ubuntu:18.04 as builder  
+FROM ubuntu:18.04 as builder
 ARG deps_dir
 
 RUN apt-get update && \
@@ -27,11 +27,8 @@ RUN curl -L https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boo
     ./b2 --with-iostreams --with-date_time --with-filesystem --with-system                                 \
         --with-program_options --with-chrono --with-test -j$(nproc) install &&                             \
     cd .. &&                                                                                               \
-    mkdir build &&                                                                                         \
-    cd build &&                                                                                            \
-    cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8                                              \
-        -DCMAKE_PREFIX_PATH="$HOME/boost1.79;/usr/lib/llvm-7/"  -DCMAKE_BUILD_TYPE=Release .. &&           \
-    make -j $(nproc) package
+    scripts/install_deps.sh     &&                                                                         \
+    scripts/pinned_build.sh deps build $(nproc)
     
 ###############################################################################    
 FROM ubuntu:18.04
@@ -46,7 +43,7 @@ RUN apt-get update && \
 WORKDIR /usr/local/wax-blockchain
 
 COPY --from=builder /tmp/wax-blockchain/build/bin   /usr/local/wax-blockchain/bin
-COPY --from=builder /tmp/wax-blockchain/build/etc   /usr/local/wax-blockchain/etc
+COPY --from=builder /tmp/wax-blockchain/build/licenses   /usr/local/wax-blockchain/licenses
 
 ENV EOSIO_ROOT=/usr/local/wax-blockchain
 ENV PATH="/usr/local/wax-blockchain/bin:${PATH}"
