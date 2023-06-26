@@ -1,5 +1,5 @@
 ################################################################################
-ARG WAX_VERSION as builder
+ARG WAX_VERSION
 FROM waxteam/waxnode-dev:$WAX_VERSION as builder
 
 ARG deps_dir=.
