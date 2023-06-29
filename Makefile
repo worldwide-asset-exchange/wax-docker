@@ -1,9 +1,9 @@
 WAX_NODE_REPO = git@github.com:worldwide-asset-exchange/wax-blockchain.git
 WAX_BRANCH ?= main
-WAX_VERSION ?= v3.1.3wax02
+WAX_VERSION ?= v4.0.1wax01
 WAX_CDT_REPO = git@github.com:worldwide-asset-exchange/cdt.git
 CDT_BRANCH ?= main
-CDT_VERSION ?= v3.0.1
+CDT_VERSION ?= v4.0.0
 DEPS_DIR=./tmp
 
 .PHONY: build-node-image build-node-image-dev push-node-image push-node-image-dev build-cdt-image build-cdt-image-dev push-cdt-image push-cdt-image-dev
