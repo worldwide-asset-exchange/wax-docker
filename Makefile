@@ -25,20 +25,20 @@ get_wax_blockchain: make_deps_dir
         git fetch --all --tags && \
         git checkout $(WAX_BRANCH); \
     fi && \
-    git checkout tags/$(WAX_VERSION) && git submodule update --init --recursive
+    git submodule update --init --recursive
 	cd $(DEPS_DIR)/wax-blockchain && echo "$(WAX_VERSION):$(shell git rev-parse HEAD)" > wax-version
 
 get_cdt: make_deps_dir
 	if [ ! -d $(DEPS_DIR)/cdt ]; then \
         cd $(DEPS_DIR) && \
-        git clone -b $(CDT_BRANCH) $(WAX_CDT_REPO) --recursive && \
+        git clone -b $(CDT_BRANCH) $(WAX_CDT_REPO) cdt --recursive && \
         cd cdt; \
     else \
         cd $(DEPS_DIR)/cdt && \
         git fetch --all --tags && \
         git checkout $(CDT_BRANCH); \
     fi && \
-    git checkout tags/$(CDT_VERSION) &&git submodule update --init --recursive
+    git submodule update --init --recursive
 	cd $(DEPS_DIR)/cdt && echo "$(CDT_VERSION):$(shell git rev-parse HEAD)" > wax-version
 
 aws-login:
