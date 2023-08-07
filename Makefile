@@ -1,8 +1,8 @@
 WAX_NODE_REPO = git@github.com:worldwide-asset-exchange/wax-blockchain.git
-WAX_BRANCH ?= v4.0.4wax01
+WAX_BRANCH ?= main
 WAX_VERSION ?= v4.0.1wax01
 WAX_CDT_REPO = git@github.com:worldwide-asset-exchange/cdt.git
-CDT_BRANCH ?= v4.0.0
+CDT_BRANCH ?= main
 CDT_VERSION ?= v4.0.0
 DEPS_DIR=./tmp
 
@@ -25,7 +25,7 @@ get_wax_blockchain: make_deps_dir
         git fetch --all --tags && \
         git checkout $(WAX_BRANCH); \
     fi && \
-    git submodule update --init --recursive
+    git checkout tags/$(WAX_VERSION) && git submodule update --init --recursive
 	cd $(DEPS_DIR)/wax-blockchain && echo "$(WAX_VERSION):$(shell git rev-parse HEAD)" > wax-version
 
 get_cdt: make_deps_dir
@@ -38,7 +38,7 @@ get_cdt: make_deps_dir
         git fetch --all --tags && \
         git checkout $(CDT_BRANCH); \
     fi && \
-    git submodule update --init --recursive
+    git checkout tags/$(WAX_VERSION) && git submodule update --init --recursive
 	cd $(DEPS_DIR)/cdt && echo "$(CDT_VERSION):$(shell git rev-parse HEAD)" > wax-version
 
 aws-login:

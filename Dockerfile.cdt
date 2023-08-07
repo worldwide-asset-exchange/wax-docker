@@ -21,7 +21,7 @@ RUN apt-get update && \
 
 WORKDIR /tmp/wax-cdt
 COPY ${deps_dir}/cdt .
-# ENV leap_DIR=$LEAP_BUILD_PATH/lib/cmake/leap
+ENV leap_DIR=$LEAP_BUILD_PATH/lib/cmake/leap
 RUN mkdir build &&      \
     cd build &&         \
     cmake -DBOOST_ROOT=$HOME/boost1.70 .. &&         \
