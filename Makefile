@@ -38,7 +38,7 @@ get_cdt: make_deps_dir
         git fetch --all --tags && \
         git checkout $(CDT_BRANCH); \
     fi && \
-    git checkout tags/$(WAX_VERSION) && git submodule update --init --recursive
+    git checkout tags/$(CDT_VERSION) && git submodule update --init --recursive
 	cd $(DEPS_DIR)/cdt && echo "$(CDT_VERSION):$(shell git rev-parse HEAD)" > wax-version
 
 aws-login:
