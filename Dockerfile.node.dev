@@ -21,14 +21,17 @@ RUN apt-get update && \
 
 WORKDIR /tmp/wax-blockchain
 COPY ${deps_dir}/wax-blockchain .
-RUN curl -L https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.bz2 | tar jx && \
-    cd boost_1_70_0 &&                                                                                     \
-    ./bootstrap.sh --prefix=$HOME/boost1.70 &&                                                             \
+RUN curl -L https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.bz2 | tar jx && \
+    cd boost_1_79_0 &&                                                                                     \
+    ./bootstrap.sh --prefix=$HOME/boost1.79 &&                                                             \
     ./b2 --with-iostreams --with-date_time --with-filesystem --with-system                                 \
         --with-program_options --with-chrono --with-test -j$(nproc) install &&                             \
     cd .. &&                                                                                               \
-    scripts/install_deps.sh     &&                                                                         \
-    scripts/pinned_build.sh deps build $(nproc)
+    mkdir build &&                                                                                         \
+    cd build &&                                                                                            \
+    cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8                                              \
+        -DCMAKE_PREFIX_PATH="$HOME/boost1.79;/usr/lib/llvm-7/"  -DCMAKE_BUILD_TYPE=Release .. &&           \
+    make -j $(nproc) package
     
 ENV EOSIO_ROOT=/tmp/wax-blockchain
 ENV PATH="/tmp/wax-blockchain/bin:${PATH}"

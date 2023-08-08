@@ -24,7 +24,7 @@ COPY ${deps_dir}/cdt .
 ENV leap_DIR=$LEAP_BUILD_PATH/lib/cmake/leap
 RUN mkdir build &&      \
     cd build &&         \
-    cmake -DBOOST_ROOT=$HOME/boost1.70 .. &&         \
+    cmake -DBOOST_ROOT=$HOME/boost1.79 .. &&         \
     make -j $(nproc) &&         \
     make install
 ENV PATH="/usr/local/cdt/bin:${PATH}"
