@@ -1,52 +1,18 @@
-################################################################################
-FROM ubuntu:18.04 as builder  
-ARG deps_dir
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y install \
-            build-essential             \
-            cmake                       \
-            curl                        \
-            g++-8                       \
-            git                         \
-            libcurl4-openssl-dev        \
-            libgmp-dev                  \
-            libssl-dev                  \
-            libusb-1.0-0-dev            \
-            llvm-7-dev                  \
-            pkg-config                  \
-            python3                     \
-            zlib1g-dev &&               \
-    rm -rf /var/lib/apt/lists/*
-
-WORKDIR /tmp/wax-blockchain
-COPY ${deps_dir}/wax-blockchain .
-RUN curl -L https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.bz2 | tar jx && \
-    cd boost_1_79_0 &&                                                                                     \
-    ./bootstrap.sh --prefix=$HOME/boost1.79 &&                                                             \
-    ./b2 --with-iostreams --with-date_time --with-filesystem --with-system                                 \
-        --with-program_options --with-chrono --with-test -j$(nproc) install &&                             \
-    cd .. &&                                                                                               \
-    mkdir build &&                                                                                         \
-    cd build &&                                                                                            \
-    cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8                                              \
-        -DCMAKE_PREFIX_PATH="$HOME/boost1.79;/usr/lib/llvm-7/"  -DCMAKE_BUILD_TYPE=Release .. &&           \
-    make -j $(nproc) package
-    
 ###############################################################################    
-FROM ubuntu:18.04
-ARG deps_dir
+ARG WAX_VERSION
+FROM waxteam/waxnode-dev:${WAX_VERSION} as dev_image
+
+FROM ubuntu:22.04
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
         libssl-dev \
         libusb-1.0-0-dev \
-        libcurl4-gnutls-dev && \
+        libcurl4-openssl-dev && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/local/wax-blockchain
 
-COPY --from=builder /tmp/wax-blockchain/build/bin   /usr/local/wax-blockchain/bin
-COPY --from=builder /tmp/wax-blockchain/build/etc   /usr/local/wax-blockchain/etc
+COPY --from=dev_image /tmp/wax-blockchain/build/bin  /usr/local/wax-blockchain/bin
 
 ENV EOSIO_ROOT=/usr/local/wax-blockchain
 ENV PATH="/usr/local/wax-blockchain/bin:${PATH}"
