@@ -1,6 +1,6 @@
 WAX_NODE_REPO = git@github.com:worldwide-asset-exchange/wax-blockchain.git
 WAX_BRANCH ?= main
-WAX_VERSION ?= v5.0.3wax01
+WAX_VERSION ?= v5.0.3wax02
 WAX_CDT_REPO = git@github.com:worldwide-asset-exchange/cdt.git
 CDT_BRANCH ?= main
 CDT_VERSION ?= v4.1.0
@@ -46,7 +46,7 @@ aws-login:
 
 build-node-image:
 	DOCKER_BUILDKIT=1 docker build -f Dockerfile.node\
-         --build-arg wax_version=$(WAX_VERSION) \
+         --build-arg WAX_VERSION=$(WAX_VERSION) \
          -t waxteam/waxnode .
 
 build-node-image-dev: get_wax_blockchain
