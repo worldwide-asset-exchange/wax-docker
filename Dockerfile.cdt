@@ -8,11 +8,12 @@ RUN apt-get update && \
         DEBIAN_FRONTEND=noninteractive apt-get -y install \
         build-essential             \
         clang                       \
+        clang-tidy                  \
         cmake                       \
         git                         \
         libxml2-dev                 \
         opam ocaml-interp           \
-        python3                     \
+        python3                    \
         python3-pip                 \
         time &&                     \
     rm -rf /var/lib/apt/lists/* &&  \
@@ -23,11 +24,11 @@ COPY ${deps_dir}/cdt .
 ENV leap_DIR=/tmp/leap/build/lib/cmake/leap
 RUN mkdir build &&      \
     cd build &&         \
-    cmake -DBOOST_ROOT=$HOME/boost1.79 .. &&         \
+    cmake .. &&         \
     make -j $(nproc)
 
 ###############################################################################
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 ARG deps_dir
 
 RUN apt-get update && \
