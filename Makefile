@@ -58,6 +58,9 @@ tag-node-image:
 	docker tag waxteam/waxnode waxteam/waxnode:$(WAX_VERSION)
 	docker tag waxteam/waxnode-dev waxteam/waxnode-dev:$(WAX_VERSION)
 
+tag-node-image-dev:
+	docker tag waxteam/waxnode-dev waxteam/waxnode-dev:$(WAX_VERSION)
+
 push-node-image:
 	docker tag waxteam/waxnode waxteam/waxnode:$(WAX_VERSION)
 	docker push waxteam/waxnode:$(WAX_VERSION)
@@ -95,4 +98,5 @@ push-cdt-image-dev:
 	docker push waxteam/waxdev:latest
 
 build-all: build-node-image build-node-image-dev tag-node-image build-cdt-image build-cdt-image-dev
+build-dev: build-node-image-dev tag-node-image-dev build-cdt-image-dev
 push-all: push-node-image push-node-image-dev push-cdt-image push-cdt-image-dev

@@ -23,5 +23,5 @@ RUN mkdir build && cd build &&                                                  
     make -j $(nproc) package
     
 ENV EOSIO_ROOT=/tmp/wax-blockchain
-ENV PATH="/tmp/wax-blockchain/bin:${PATH}"
+ENV PATH="/tmp/wax-blockchain/build/bin:${PATH}"
 ENV LEAP_BUILD_PATH=/tmp/wax-blockchain/build
