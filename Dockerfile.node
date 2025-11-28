@@ -1,33 +1,12 @@
 ################################################################################
-FROM ubuntu:22.04 as builder
-ARG deps_dir
-
-RUN apt-get update && \
-        DEBIAN_FRONTEND=noninteractive apt-get -y install \
-        build-essential \
-        cmake \
-        curl \
-        git \
-        libboost-all-dev \
-        libcurl4-openssl-dev \
-        libgmp-dev \
-        libssl-dev \
-        llvm-11-dev \
-        python3-numpy && \
-        rm -rf /var/lib/apt/lists/*
-
-WORKDIR /tmp/wax-blockchain
-COPY ${deps_dir}/wax-blockchain .
-RUN mkdir build && cd build &&                                                                             \
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/lib/llvm-11 .. &&                            \
-    make -j $(nproc) package
+ARG WAX_VERSION
+FROM waxteam/waxnode-dev:$WAX_VERSION as builder
     
 ###############################################################################    
 FROM ubuntu:22.04
-ARG deps_dir
 
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2-dev && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2-dev libcurl4-openssl-dev && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/local/wax-blockchain
 
