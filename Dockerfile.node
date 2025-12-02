@@ -1,6 +1,6 @@
 ################################################################################
 ARG WAX_VERSION
-FROM waxteam/waxnode-dev:$WAX_VERSION as builder
+FROM waxteam/waxnode-base:$WAX_VERSION as builder
     
 ###############################################################################    
 FROM ubuntu:22.04
