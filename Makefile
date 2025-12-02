@@ -6,7 +6,7 @@ CDT_BRANCH ?= main
 CDT_VERSION ?= v4.1.1wax01
 DEPS_DIR=./tmp
 
-.PHONY: build-node-image build-node-base-image push-node-image push-node-base-image build-cdt-image build-cdt-base-image push-cdt-image push-cdt-base-image
+.PHONY: build-node-image build-node-base-image push-node-image push-node-base-image build-cdt-image build-cdt-image push-cdt-image push-cdt-image
 
 make_deps_dir:
 	@mkdir -p $(DEPS_DIR)
@@ -61,12 +61,6 @@ tag-node-image:
 tag-node-base-image:
 	docker tag waxteam/waxnode-base waxteam/waxnode-base:$(WAX_VERSION)
 
-tag-cdt-image:
-	docker tag waxteam/cdt waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)
-
-tag-cdt-base-image:
-	docker tag waxteam/cdt-base waxteam/cdt-base:$(WAX_VERSION)-$(CDT_VERSION)
-
 push-node-image:
 	docker tag waxteam/waxnode waxteam/waxnode:$(WAX_VERSION)
 	docker push waxteam/waxnode:$(WAX_VERSION)
@@ -79,18 +73,30 @@ push-node-base-image:
 	docker tag waxteam/waxnode-base:$(WAX_VERSION) waxteam/waxnode-base:latest
 	docker push waxteam/waxnode-base:latest
 
-build-cdt-image:
+build-cdt-node-image:
 	docker build -f Dockerfile.cdt \
         --build-arg deps_dir=$(DEPS_DIR) \
         --build-arg WAX_VERSION=$(WAX_VERSION)\
 				--build-arg CDT_VERSION=$(CDT_VERSION)\
-        -t waxteam/cdt .
+        -t waxteam/cdt-node .
 
-build-cdt-base-image: get_cdt
-	docker build -f Dockerfile.cdt.base \
+build-cdt-image: get_cdt
+	docker build -f Dockerfile.cdt \
         --build-arg deps_dir=$(DEPS_DIR) \
         --build-arg WAX_VERSION=$(WAX_VERSION)\
-        -t waxteam/cdt-base .
+        -t waxteam/cdt .
+
+tag-cdt-node-image:
+	docker tag waxteam/cdt-node waxteam/cdt-node:$(WAX_VERSION)-$(CDT_VERSION)
+
+tag-cdt-image:
+	docker tag waxteam/cdt waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)
+
+push-cdt-node-image:
+	docker tag waxteam/cdt-node waxteam/cdt-node:$(WAX_VERSION)-$(CDT_VERSION)
+	docker push waxteam/cdt-node:$(WAX_VERSION)-$(CDT_VERSION)
+	docker tag waxteam/cdt-node waxteam/cdt-node:latest
+	docker push waxteam/cdt-node:latest
 
 push-cdt-image:
 	docker tag waxteam/cdt waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)
@@ -98,12 +104,6 @@ push-cdt-image:
 	docker tag waxteam/cdt waxteam/cdt:latest
 	docker push waxteam/cdt:latest
 
-push-cdt-base-image:
-	docker tag waxteam/cdt-base waxteam/cdt-base:$(WAX_VERSION)-$(CDT_VERSION)
-	docker push waxteam/cdt-base:$(WAX_VERSION)-$(CDT_VERSION)
-	docker tag waxteam/cdt-base waxteam/cdt-base:latest
-	docker push waxteam/cdt-base:latest
-
-build-all: build-node-base-image tag-node-base-image build-node-image tag-node-image build-cdt-base-image tag-cdt-base-image build-cdt-image tag-cdt-image
-build-base: build-node-base-image tag-node-base-image build-cdt-base-image
-push-all: push-node-base-image push-node-image push-cdt-base-image push-cdt-image
+build-all: build-node-base-image tag-node-base-image build-node-image tag-node-image build-cdt-image tag-cdt-image build-cdt-node-image tag-cdt-node-image
+build-base: build-node-base-image tag-node-base-image build-cdt-image tag-cdt-image
+push-all: push-node-base-image push-node-image push-cdt-image push-cdt-node-image

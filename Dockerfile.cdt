@@ -1,25 +1,31 @@
 ################################################################################
 ARG WAX_VERSION
-ARG CDT_VERSION
-FROM waxteam/waxdev:$WAX_VERSION-$CDT_VERSION as builder
+FROM waxteam/waxnode-base:$WAX_VERSION
 
-###############################################################################
-FROM ubuntu:22.04
-ARG deps_dir
+ARG deps_dir=.
 
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        libssl-dev \
-        libusb-1.0-0-dev \
-        libcurl4-openssl-dev && \
-    rm -rf /var/lib/apt/lists/*
-WORKDIR /usr/local/cdt
+        DEBIAN_FRONTEND=noninteractive apt-get -y install \
+        build-essential             \
+        clang                       \
+        clang-tidy                  \
+        cmake                       \
+        git                         \
+        libxml2-dev                 \
+        opam ocaml-interp           \
+        python3                    \
+        python3-pip                 \
+        time &&                     \
+    rm -rf /var/lib/apt/lists/* &&  \
+    python3 -m pip install pygments
 
-COPY --from=builder /tmp/wax-blockchain/build/bin   /usr/local/wax-blockchain/bin
-COPY --from=builder /tmp/wax-cdt/build/bin   /usr/local/cdt/bin
-COPY --from=builder /tmp/wax-cdt/build/cdt.imports   /usr/local/cdt/cdt.imports
-COPY --from=builder /tmp/wax-cdt/build/include   /usr/local/cdt/include
-COPY --from=builder /tmp/wax-cdt/build/lib   /usr/local/cdt/lib
-COPY --from=builder /tmp/wax-cdt/build/scripts   /usr/local/cdt/scripts
-
-ENV PATH="/usr/local/cdt/bin:/usr/local/wax-blockchain/bin:${PATH}"
+WORKDIR /tmp/wax-cdt
+COPY ${deps_dir}/cdt . 
+ENV leap_DIR=$LEAP_BUILD_PATH/lib/cmake/leap
+RUN mkdir build &&      \
+    cd build &&         \
+    cmake .. &&         \
+    make -j $(nproc) &&         \
+    make install
+ENV PATH="/usr/local/cdt/bin:${PATH}"
+ENV CDT_BUILD_PATH=/tmp/wax-cdt/build
