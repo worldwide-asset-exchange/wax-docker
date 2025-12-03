@@ -1,0 +1,25 @@
+################################################################################
+ARG WAX_VERSION
+ARG CDT_VERSION
+FROM waxteam/cdt:$WAX_VERSION-$CDT_VERSION as builder
+
+###############################################################################
+FROM ubuntu:22.04
+ARG deps_dir
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libssl-dev \
+        libusb-1.0-0-dev \
+        libcurl4-openssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /usr/local/cdt
+
+COPY --from=builder /tmp/wax-blockchain/build/bin   /usr/local/wax-blockchain/bin
+COPY --from=builder /tmp/wax-cdt/build/bin   /usr/local/cdt/bin
+COPY --from=builder /tmp/wax-cdt/build/cdt.imports   /usr/local/cdt/cdt.imports
+COPY --from=builder /tmp/wax-cdt/build/include   /usr/local/cdt/include
+COPY --from=builder /tmp/wax-cdt/build/lib   /usr/local/cdt/lib
+COPY --from=builder /tmp/wax-cdt/build/scripts   /usr/local/cdt/scripts
+
+ENV PATH="/usr/local/cdt/bin:/usr/local/wax-blockchain/bin:${PATH}"

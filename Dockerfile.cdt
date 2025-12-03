@@ -1,6 +1,6 @@
 ################################################################################
 ARG WAX_VERSION
-FROM waxteam/waxnode:$WAX_VERSION as builder
+FROM waxteam/waxnode-base:$WAX_VERSION
 
 ARG deps_dir=.
 
@@ -20,29 +20,12 @@ RUN apt-get update && \
     python3 -m pip install pygments
 
 WORKDIR /tmp/wax-cdt
-COPY ${deps_dir}/cdt .
-ENV leap_DIR=/tmp/leap/build/lib/cmake/leap
+COPY ${deps_dir}/cdt . 
+ENV leap_DIR=$LEAP_BUILD_PATH/lib/cmake/leap
 RUN mkdir build &&      \
     cd build &&         \
     cmake .. &&         \
-    make -j $(nproc)
-
-###############################################################################
-FROM ubuntu:22.04
-ARG deps_dir
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        libssl-dev \
-        libusb-1.0-0-dev \
-        libcurl4-gnutls-dev && \
-    rm -rf /var/lib/apt/lists/*
-WORKDIR /usr/local/cdt
-
-COPY --from=builder /tmp/wax-cdt/build/bin   /usr/local/cdt/bin
-COPY --from=builder /tmp/wax-cdt/build/cdt.imports   /usr/local/cdt/cdt.imports
-COPY --from=builder /tmp/wax-cdt/build/include   /usr/local/cdt/include
-COPY --from=builder /tmp/wax-cdt/build/lib   /usr/local/cdt/lib
-COPY --from=builder /tmp/wax-cdt/build/scripts   /usr/local/cdt/scripts
-
+    make -j $(nproc) &&         \
+    make install
 ENV PATH="/usr/local/cdt/bin:${PATH}"
+ENV CDT_BUILD_PATH=/tmp/wax-cdt/build
