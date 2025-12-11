@@ -6,7 +6,7 @@ CDT_BRANCH ?= main
 CDT_VERSION ?= v4.1.1wax01
 DEPS_DIR=./tmp
 
-.PHONY: build-node-image build-node-base-image push-node-image push-node-base-image build-cdt-image build-cdt-image push-cdt-image push-cdt-image
+.PHONY: build-node-image build-node-base-image push-node-image push-node-base-image build-cdt-image build-cdt-node-image push-cdt-image push-cdt-image
 
 make_deps_dir:
 	@mkdir -p $(DEPS_DIR)
@@ -74,7 +74,7 @@ push-node-base-image:
 	docker push waxteam/waxnode-base:latest
 
 build-cdt-node-image:
-	docker build -f Dockerfile.cdt \
+	docker build -f Dockerfile.cdt.node \
         --build-arg deps_dir=$(DEPS_DIR) \
         --build-arg WAX_VERSION=$(WAX_VERSION)\
 				--build-arg CDT_VERSION=$(CDT_VERSION)\
