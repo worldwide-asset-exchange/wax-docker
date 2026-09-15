@@ -1,0 +1,96 @@
+# Expensive path: build every image from source, verify it, then optionally push.
+#
+# Deliberately manual. A full nodeos + CDT build produces an 11GB base image and
+# a 21GB cdt image, which does not fit a GitHub-hosted runner (~14GB free disk,
+# 4 cores). Point `runner` at a self-hosted or larger runner. The verification
+# it runs afterwards is the same scripts/verify-images.sh used locally and by
+# verify.yml -- nothing is published that has not compiled a contract first.
+name: build images
+
+on:
+  workflow_dispatch:
+    inputs:
+      wax_version:
+        description: 'wax-blockchain tag to build (default: the Makefile pin)'
+        required: false
+      cdt_version:
+        description: 'wax-cdt tag to build (default: the Makefile pin)'
+        required: false
+      jobs:
+        description: 'Compiler parallelism. ~2-3GB RAM per job; leave blank for $(nproc)'
+        required: false
+        default: '6'
+      runner:
+        description: 'Runner label. ubuntu-latest will NOT fit -- use a self-hosted or larger runner'
+        required: false
+        default: 'self-hosted'
+      push:
+        description: 'Push to Docker Hub after verification passes'
+        type: boolean
+        default: false
+      move_latest:
+        description: 'Also move the :latest tag (only applies when push is true)'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ${{ github.event.inputs.runner }}
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve versions
+        id: v
+        run: |
+          WAX="${{ github.event.inputs.wax_version }}"
+          CDT="${{ github.event.inputs.cdt_version }}"
+          [ -z "$WAX" ] && WAX=$(make --no-print-directory print-wax-version)
+          [ -z "$CDT" ] && CDT=$(make --no-print-directory print-cdt-version)
+          echo "wax=$WAX" >> "$GITHUB_OUTPUT"
+          echo "cdt=$CDT" >> "$GITHUB_OUTPUT"
+
+      - name: Check disk headroom
+        run: |
+          # Fail fast and legibly rather than dying mid-compile hours later.
+          avail=$(df -BG --output=avail . | tail -1 | tr -dc '0-9')
+          echo "${avail}GB available"
+          if [ "$avail" -lt 60 ]; then
+            echo "::error::Need ~60GB free (11GB base + 21GB cdt + build tree); only ${avail}GB available. Use a larger runner."
+            exit 1
+          fi
+
+      - name: Build all images
+        run: |
+          make build-all \
+            WAX_VERSION='${{ steps.v.outputs.wax }}' \
+            CDT_VERSION='${{ steps.v.outputs.cdt }}' \
+            JOBS='${{ github.event.inputs.jobs }}'
+
+      # The gate. Nothing below this runs if a contract will not compile.
+      - name: Verify images
+        env:
+          WAX_VERSION: ${{ steps.v.outputs.wax }}
+          CDT_VERSION: ${{ steps.v.outputs.cdt }}
+        run: ./scripts/verify-images.sh
+
+      - name: Log in to Docker Hub
+        if: ${{ github.event.inputs.push == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push (version tags only)
+        if: ${{ github.event.inputs.push == 'true' && github.event.inputs.move_latest != 'true' }}
+        run: |
+          make push-versions \
+            WAX_VERSION='${{ steps.v.outputs.wax }}' \
+            CDT_VERSION='${{ steps.v.outputs.cdt }}'
+
+      - name: Push (version tags and latest)
+        if: ${{ github.event.inputs.push == 'true' && github.event.inputs.move_latest == 'true' }}
+        run: |
+          make push-all \
+            WAX_VERSION='${{ steps.v.outputs.wax }}' \
+            CDT_VERSION='${{ steps.v.outputs.cdt }}'
