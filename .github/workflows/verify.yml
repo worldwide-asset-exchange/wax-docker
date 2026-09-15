@@ -1,0 +1,79 @@
+# Cheap gate: prove the PUBLISHED images actually work.
+#
+# This is the check that was missing when waxteam/cdt-node shipped for nine
+# months with a compiler and linker that could not run (missing libz3-4 /
+# libxml2). It pulls the images the Makefile currently pins and compiles a real
+# contract with them, so the defect surfaces in minutes rather than in a user's
+# bug report. It does NOT build from source -- see build.yml for that.
+name: verify images
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile*'
+      - 'Makefile'
+      - 'scripts/verify-images.sh'
+      - 'test/**'
+      - '.github/workflows/verify.yml'
+  workflow_dispatch:
+    inputs:
+      wax_version:
+        description: 'WAX_VERSION to verify (default: the Makefile pin)'
+        required: false
+      cdt_version:
+        description: 'CDT_VERSION to verify (default: the Makefile pin)'
+        required: false
+  schedule:
+    # Weekly, against whatever the Makefile pins -- catches a base-image or
+    # registry-side regression in a tag we already shipped.
+    - cron: '0 6 * * 1'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve versions
+        id: v
+        run: |
+          WAX="${{ github.event.inputs.wax_version }}"
+          CDT="${{ github.event.inputs.cdt_version }}"
+          # Fall back to the Makefile's pins so the workflow and the build agree
+          # on one source of truth.
+          [ -z "$WAX" ] && WAX=$(make --no-print-directory print-wax-version)
+          [ -z "$CDT" ] && CDT=$(make --no-print-directory print-cdt-version)
+          echo "wax=$WAX" >> "$GITHUB_OUTPUT"
+          echo "cdt=$CDT" >> "$GITHUB_OUTPUT"
+          echo "Verifying WAX_VERSION=$WAX CDT_VERSION=$CDT"
+
+      - name: Are these versions published yet?
+        id: published
+        run: |
+          # A PR that bumps to a not-yet-built tag has nothing to verify. Say so
+          # and skip, rather than failing on a tag whose images do not exist.
+          tag="${{ steps.v.outputs.wax }}-${{ steps.v.outputs.cdt }}"
+          if docker manifest inspect "waxteam/cdt-node:${tag}" >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::waxteam/cdt-node:${tag} is not published yet -- run the 'build images' workflow for this version, then re-run this check."
+          fi
+
+      # Only the two images users consume (~1.6GB total). The waxteam/cdt builder
+      # is ~21GB and does not fit a GitHub-hosted runner's ~14GB of free disk --
+      # build.yml verifies that one, where it is already on the machine.
+      - name: Pull images
+        if: steps.published.outputs.found == 'true'
+        run: |
+          docker pull -q "waxteam/waxnode:${{ steps.v.outputs.wax }}"
+          docker pull -q "waxteam/cdt-node:${{ steps.v.outputs.wax }}-${{ steps.v.outputs.cdt }}"
+
+      - name: Verify
+        if: steps.published.outputs.found == 'true'
+        env:
+          WAX_VERSION: ${{ steps.v.outputs.wax }}
+          CDT_VERSION: ${{ steps.v.outputs.cdt }}
+          SKIP_HEAVY: '1'
+        run: ./scripts/verify-images.sh

@@ -9,7 +9,7 @@ DEPS_DIR=./tmp
 # Set this on shared/low-RAM machines: the C++ builds need roughly 2-3GB of RAM per job.
 JOBS ?=
 
-.PHONY: build-node-image build-node-base-image push-node-image push-node-base-image build-cdt-image build-cdt-node-image push-cdt-image push-cdt-image
+.PHONY: build-node-image build-node-base-image push-node-image push-node-base-image build-cdt-image build-cdt-node-image push-cdt-image push-cdt-image verify push-versions print-wax-version print-cdt-version
 
 make_deps_dir:
 	@mkdir -p $(DEPS_DIR)
@@ -112,3 +112,31 @@ push-cdt-image:
 build-all: build-node-base-image tag-node-base-image build-node-image tag-node-image build-cdt-image tag-cdt-image build-cdt-node-image tag-cdt-node-image
 build-base: build-node-base-image tag-node-base-image build-cdt-image tag-cdt-image
 push-all: push-node-base-image push-node-image push-cdt-image push-cdt-node-image
+
+# ---------------------------------------------------------------------------
+# Verification + CI helpers
+# ---------------------------------------------------------------------------
+
+# Prove the images work: versions match their tags, no binary is missing a
+# shared library, and both CDT images can compile a real contract. This is the
+# same script CI runs (.github/workflows/verify.yml), so local-green == CI-green.
+# SKIP_HEAVY=1 drops the checks needing the ~21GB cdt builder image.
+verify:
+	WAX_VERSION=$(WAX_VERSION) CDT_VERSION=$(CDT_VERSION) ./scripts/verify-images.sh
+
+# Push the version tags WITHOUT moving :latest. push-all moves latest on all
+# four images, which is not always wanted -- e.g. publishing a patch build for
+# one consumer while latest should keep pointing at the current release.
+push-versions:
+	docker push waxteam/waxnode-base:$(WAX_VERSION)
+	docker push waxteam/waxnode:$(WAX_VERSION)
+	docker push waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)
+	docker push waxteam/cdt-node:$(WAX_VERSION)-$(CDT_VERSION)
+
+# Single source of truth for the pinned versions: CI reads them from here
+# rather than duplicating the strings in workflow YAML.
+print-wax-version:
+	@echo $(WAX_VERSION)
+
+print-cdt-version:
+	@echo $(CDT_VERSION)

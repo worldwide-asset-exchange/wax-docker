@@ -34,6 +34,29 @@ $ make WAX_VERSION=ce-v1.3.1wax01 CDT_VERSION=v4.1.1wax01 build-all
 ```
 
 `make build-all` tags the resulting images with the version (e.g. `waxteam/waxnode:ce-v1.3.1wax01`, `waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)`). Pick versions from the upstream release pages ([wax-blockchain](https://github.com/worldwide-asset-exchange/wax-blockchain/releases), [wax-cdt](https://github.com/worldwide-asset-exchange/wax-cdt/releases)) and the published [Docker Hub tags](https://hub.docker.com/r/waxteam/waxnode/tags).
+## Verifying a build
+
+```
+$ make verify                      # or: make verify WAX_VERSION=... CDT_VERSION=...
+```
+
+Runs [`scripts/verify-images.sh`](scripts/verify-images.sh): checks that `nodeos`/`cleos`/`cdt-cpp` report the versions their tags claim, that no binary in any image is missing a shared library, that both CDT images compile [`test/hello.cpp`](test/hello.cpp) to `.wasm` + `.abi`, and that the `wax-version` provenance file records the right commit.
+
+`SKIP_HEAVY=1` drops the checks needing the ~21GB `waxteam/cdt` builder image.
+
+**Always run this before `push-all`.** `waxteam/cdt-node` shipped from 2025-12 to 2026-09 with neither `libz3-4` (needed by `clang-9`) nor `libxml2` (needed by `lld`/`wasm-ld`) installed, so its compiler and linker were both broken — the image could not do the one thing it exists for. Nothing caught it because nothing ever compiled a contract with a published image.
+
+## CI
+
+| Workflow | Trigger | What it does |
+|---|---|---|
+| [`verify images`](.github/workflows/verify.yml) | PR touching a Dockerfile/Makefile/script, weekly cron, manual | Pulls the published `waxnode` + `cdt-node` and runs the verification above. Minutes, fits a GitHub-hosted runner. Skips with a notice if the pinned version is not published yet. |
+| [`build images`](.github/workflows/build.yml) | Manual only | Full from-source `build-all`, then verification, then an optional push. |
+
+`build images` **will not run on `ubuntu-latest`** — the base image is ~11GB and the CDT image ~21GB against ~14GB of free disk. Point its `runner` input at a self-hosted or larger runner; the job fails fast with a clear message if there is under 60GB free.
+
+Pushing from CI needs repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`, and `push`/`move_latest` are separate inputs so moving `:latest` is always a deliberate choice.
+
 # Docker images
 ## waxteam/waxnode
 - This Docker image is used for the WAX blockchain and includes the following tools: cleos, nodeos, and keosd. It provides a complete environment for running and managing a WAX blockchain node. 
