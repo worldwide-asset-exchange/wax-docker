@@ -3,6 +3,8 @@ ARG WAX_VERSION
 FROM waxteam/waxnode-base:$WAX_VERSION
 
 ARG deps_dir=.
+# See Dockerfile.node.base — bound compiler parallelism to keep peak RSS survivable.
+ARG JOBS
 
 RUN apt-get update && \
         DEBIAN_FRONTEND=noninteractive apt-get -y install \
@@ -25,7 +27,7 @@ ENV leap_DIR=$LEAP_BUILD_PATH/lib/cmake/leap
 RUN mkdir build &&      \
     cd build &&         \
     cmake .. &&         \
-    make -j $(nproc) &&         \
+    make -j ${JOBS:-$(nproc)} &&         \
     make install
 ENV PATH="/usr/local/cdt/bin:${PATH}"
 ENV CDT_BUILD_PATH=/tmp/wax-cdt/build

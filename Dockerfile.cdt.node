@@ -7,11 +7,17 @@ FROM waxteam/cdt:$WAX_VERSION-$CDT_VERSION as builder
 FROM ubuntu:22.04
 ARG deps_dir
 
+# Runtime deps for the CDT toolchain copied from the builder stage:
+#   libz3-4  -> clang-9 (the contract compiler) links against libz3.so.4
+#   libxml2  -> lld / wasm-ld / ld.lld / ld64.lld link against libxml2.so.2
+# Without these the image ships a cdt-cpp that cannot compile a contract at all.
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
         libssl-dev \
         libusb-1.0-0-dev \
-        libcurl4-openssl-dev && \
+        libcurl4-openssl-dev \
+        libz3-4 \
+        libxml2 && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/local/cdt
 
