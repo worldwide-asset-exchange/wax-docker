@@ -1,6 +1,10 @@
 ################################################################################
 FROM ubuntu:22.04 as builder
 ARG deps_dir
+# Cap compiler parallelism. nodeos' heavier translation units peak around 2-3GB per cc1plus,
+# so an unbounded -j $(nproc) needs ~2GB x ncpu of RAM and will swap-thrash a shared box.
+# Empty/unset keeps the historical behaviour.
+ARG JOBS
 
 RUN apt-get update && \
         DEBIAN_FRONTEND=noninteractive apt-get -y install \
@@ -20,7 +24,7 @@ WORKDIR /tmp/wax-blockchain
 COPY ${deps_dir}/wax-blockchain .
 RUN mkdir build && cd build &&                                                                             \
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/lib/llvm-11 .. &&                            \
-    make -j $(nproc) package
+    make -j ${JOBS:-$(nproc)} package
     
 ENV EOSIO_ROOT=/tmp/wax-blockchain
 ENV PATH="/tmp/wax-blockchain/build/bin:${PATH}"

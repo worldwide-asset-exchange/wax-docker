@@ -1,10 +1,13 @@
 WAX_NODE_REPO = git@github.com:worldwide-asset-exchange/wax-blockchain.git
 WAX_BRANCH ?= main
-WAX_VERSION ?= ce-v1.0.3wax01
+WAX_VERSION ?= ce-v1.3.1wax01
 WAX_CDT_REPO = git@github.com:worldwide-asset-exchange/wax-cdt.git
 CDT_BRANCH ?= main
 CDT_VERSION ?= v4.1.1wax01
 DEPS_DIR=./tmp
+# Compiler parallelism inside the image builds. Empty => the Dockerfiles fall back to $(nproc).
+# Set this on shared/low-RAM machines: the C++ builds need roughly 2-3GB of RAM per job.
+JOBS ?=
 
 .PHONY: build-node-image build-node-base-image push-node-image push-node-base-image build-cdt-image build-cdt-node-image push-cdt-image push-cdt-image
 
@@ -26,7 +29,7 @@ get_wax_blockchain: make_deps_dir
         git checkout $(WAX_BRANCH); \
     fi && \
     git checkout tags/$(WAX_VERSION) && git submodule update --init --recursive
-	cd $(DEPS_DIR)/wax-blockchain && echo "$(WAX_VERSION):$(shell git rev-parse HEAD)" > wax-version
+	cd $(DEPS_DIR)/wax-blockchain && echo "$(WAX_VERSION):$$(git rev-parse HEAD)" > wax-version
 
 get_cdt: make_deps_dir
 	if [ ! -d $(DEPS_DIR)/cdt ]; then \
@@ -39,7 +42,7 @@ get_cdt: make_deps_dir
         git checkout $(CDT_BRANCH); \
     fi && \
     git checkout tags/$(CDT_VERSION) &&git submodule update --init --recursive
-	cd $(DEPS_DIR)/cdt && echo "$(CDT_VERSION):$(shell git rev-parse HEAD)" > wax-version
+	cd $(DEPS_DIR)/cdt && echo "$(CDT_VERSION):$$(git rev-parse HEAD)" > wax-version
 
 aws-login:
 	aws ecr get-login --region us-east-1 | sed 's/-e none//g' | bash
@@ -53,6 +56,7 @@ build-node-image:
 build-node-base-image: get_wax_blockchain
 	docker build -f Dockerfile.node.base\
          --build-arg deps_dir=$(DEPS_DIR) \
+         --build-arg JOBS=$(JOBS) \
          -t waxteam/waxnode-base .
 
 tag-node-image:
@@ -84,6 +88,7 @@ build-cdt-image: get_cdt
 	docker build -f Dockerfile.cdt \
         --build-arg deps_dir=$(DEPS_DIR) \
         --build-arg WAX_VERSION=$(WAX_VERSION)\
+        --build-arg JOBS=$(JOBS) \
         -t waxteam/cdt .
 
 tag-cdt-node-image:
