@@ -44,7 +44,10 @@ pass() { printf '  \033[32mPASS\033[0m  %s\n' "$*"; }
 bad()  { printf '  \033[31mFAIL\033[0m  %s\n' "$*"; fail=1; }
 head2(){ printf '\n\033[1m%s\033[0m\n' "$*"; }
 
-run() { docker run --rm "$@" 2>&1; }
+# --network none: none of these checks needs the network, and without it Docker prints no
+# networking warnings (e.g. "IPv4 forwarding is disabled") into the output being checked --
+# the library sweep below treats any output as a missing library.
+run() { docker run --rm --network none "$@" 2>&1; }
 
 # ---------------------------------------------------------------- versions ---
 head2 "versions"
