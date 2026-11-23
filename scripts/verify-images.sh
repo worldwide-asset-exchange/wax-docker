@@ -14,7 +14,7 @@
 # so its compiler and linker were both broken. Nothing caught it, because
 # nothing ever compiled a contract with the image we published.
 #
-# Usage:  WAX_VERSION=ce-v1.3.1wax01 CDT_VERSION=v4.1.1wax01 scripts/verify-images.sh
+# Usage:  WAX_VERSION=ce-v1.3.1wax01 CDT_VERSION=v4.1.1wax02 scripts/verify-images.sh
 #
 # SKIP_HEAVY=1 drops the checks that need the ~21GB waxteam/cdt builder image
 # (and the provenance file, which only that image carries). Set it on a runner
@@ -24,7 +24,7 @@
 set -uo pipefail
 
 : "${WAX_VERSION:?set WAX_VERSION (e.g. ce-v1.3.1wax01)}"
-: "${CDT_VERSION:?set CDT_VERSION (e.g. v4.1.1wax01)}"
+: "${CDT_VERSION:?set CDT_VERSION (e.g. v4.1.1wax02)}"
 
 NODE_IMAGE=${NODE_IMAGE:-waxteam/waxnode:${WAX_VERSION}}
 CDT_IMAGE=${CDT_IMAGE:-waxteam/cdt:${WAX_VERSION}-${CDT_VERSION}}

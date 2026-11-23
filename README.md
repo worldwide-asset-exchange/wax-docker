@@ -10,7 +10,7 @@ The images currently target:
 | Build arg     | Default          | What it is |
 |---------------|------------------|------------|
 | `WAX_VERSION` | `ce-v1.3.1wax01` | WAX blockchain / nodeos — Antelope Spring Community Edition (nodeos `v1.3.1wax01`), successor to the Leap 5.0 (`v5.0.x`) line |
-| `CDT_VERSION` | `v4.1.1wax01`    | Contract Development Toolkit |
+| `CDT_VERSION` | `v4.1.1wax02`    | Contract Development Toolkit |
 
 These defaults are set in the `Makefile` and are checked out as the matching git tags from `wax-blockchain` / `wax-cdt`. `make` clones those repos into `./tmp` automatically — you do not need to clone them by hand.
 
@@ -30,7 +30,7 @@ Leave `JOBS` unset for the historical `$(nproc)` behaviour.
 Override the version on the `make` command line (no need to edit the Dockerfiles — they take `WAX_VERSION` / `CDT_VERSION` as build args):
 
 ```
-$ make WAX_VERSION=ce-v1.3.1wax01 CDT_VERSION=v4.1.1wax01 build-all
+$ make WAX_VERSION=ce-v1.3.1wax01 CDT_VERSION=v4.1.1wax02 build-all
 ```
 
 `make build-all` tags the resulting images with the version (e.g. `waxteam/waxnode:ce-v1.3.1wax01`, `waxteam/cdt:$(WAX_VERSION)-$(CDT_VERSION)`). Pick versions from the upstream release pages ([wax-blockchain](https://github.com/worldwide-asset-exchange/wax-blockchain/releases), [wax-cdt](https://github.com/worldwide-asset-exchange/wax-cdt/releases)) and the published [Docker Hub tags](https://hub.docker.com/r/waxteam/waxnode/tags).
