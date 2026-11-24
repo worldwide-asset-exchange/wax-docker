@@ -3,7 +3,7 @@ WAX_BRANCH ?= main
 WAX_VERSION ?= ce-v1.3.1wax01
 WAX_CDT_REPO = git@github.com:worldwide-asset-exchange/wax-cdt.git
 CDT_BRANCH ?= main
-CDT_VERSION ?= v4.1.1wax01
+CDT_VERSION ?= v4.1.1wax02
 DEPS_DIR=./tmp
 # Compiler parallelism inside the image builds. Empty => the Dockerfiles fall back to $(nproc).
 # Set this on shared/low-RAM machines: the C++ builds need roughly 2-3GB of RAM per job.
